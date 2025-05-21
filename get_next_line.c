@@ -3,237 +3,243 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: brmaria- <brmaria-@student.42porto.com>    +#+  +:+       +#+        */
+/*   By: brmaria- <brmaria-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/13 13:00:29 by brmaria-          #+#    #+#             */
-/*   Updated: 2025/05/17 12:02:51 by brmaria-         ###   ########.fr       */
+/*   Updated: 2025/05/21 21:02:54 by brmaria-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include <stdlib.h>
-size_t	ft_strl(char *str)
-{
-	size_t i;
 
+size_t	ft_strlen(const char *c)
+{
+	int	count;
+	
+	count = 0;
+	while (c[count])
+		count++;
+	return (count);
+}
+
+void	*ft_memmove(void *dest, void *src, size_t n)
+{
+	unsigned char	*s;
+	unsigned char	*d;
+	size_t			i;
+	
+	d = (unsigned char *) dest;
+	s = (unsigned char *) src;
 	i = 0;
-	if (!str)
-		return (0);
-	while (str && str[i])	
-	i++;
-	return (i);
-}
-
-char	*ft_handle_nl(char *buffer, char *new_line)
-{
-	char	*final_line;
-	int	nl_index;
-	int	i;
-
-	nl_index = ft_find_nl(new_line);
-	if (nl_index >= 0)
+	if (!d && !s)
+		return (NULL);
+	if (d > s)
 	{
-		i = -1;
-		 
-}
-
-char	*ft_join_free(char *new_line, char *stash)
-{
-	char	*big_line;
-	ssize_t	i;
-	ssize_t	j;
-
-	big_line = malloc(sizeof(char) * (ft_strl(new_line) +ft_strl(stash) + 1));
-	if (big_line)
-	{
-		i = 0;
-		j = 0;
-		while (new_line[i])
+		while (n > 0)
 		{
-			big_line[i] = new_line[i];
-			i++;
+			n--;
+			d[n] = s[n];
 		}
-		while (stash[j])
-		{
-			big_line[i + j] = stash[j];
-			j++;
-		}
-		big_line[i + j] = '\0';	
 	}
-	free (new_line);
-	return (big_line);
-}
-
-ssize_t	ft_find_nl(char *stash)
-{
-	size_t	i;
-
-	i = 0;
-	if (!stash)
-		return (-1);
-	while(stash[i])
+	while (i < n)
 	{
-		if (stash[i] == '\n')
-			return (i);
+		d[i] = s[i];
 		i++;
 	}
-	return (-1);
+	return (dest);
 }
 
-void	ft_memmove_nl(char *stash)
+char	*ft_strjoin(char *s1, char *s2)
 {
-	ssize_t	index;
-	ssize_t	nl_index;
-
-	index = 0;
-	if(!stash)
-		return ;
-	nl_index = ft_find_nl(stash);
-	if (nl_index == -1)
+	size_t	i;
+	size_t	j;
+	char	*ns;
+	int	size;
+	
+	i = 0;
+	j = 0;
+	if(!s1)
 	{
-		stash[0] = '\0';
-		return ;
+		s1 = malloc(1);
+		if (!s1)
+			return(NULL);
+		s1[0] = '\0';
 	}
-	while (stash[index])
+	size = ft_strlen(s1) + ft_strlen(s2);
+	ns = malloc((size + 1) * sizeof(char));
+	if (!ns)
+		return (0);
+	while ((i < size) && s1[i])
 	{
-		stash[index] = stash[index + nl_index + 1];
-		index++;
+		ns[i] = s1[i];
+		i++;
 	}
-	while (index < BUFFER_SIZE)
+	while ((i < size) && s2[j])
 	{
-		stash[index] = '\0';
-		index++;
+		ns[i + j] = s2[j];
+		j++; 
 	}
+	ns[i + j] = '\0';
+	free (s1);
+	return (ns);
 }
 
-char    *ft_read_and_stash(int fd, char *stash, char *new_line)
+char	*ft_strchr(const char *s, int c)
 {
-        ssize_t b_read;
-        char    *buffer;
+	int	i;
+	unsigned char	cc;
 
-	b_read = 1;
-	buffer = malloc((BUFFER_SIZE + 1) * sizeof(char));
-        if (!buffer)
-                return (NULL);
-	while (b_read > 0 && !ft_find_nl(stash))
+	i = 0;
+	cc = c;
+	while (s[i])
 	{
-        	b_read = read(fd, buffer, BUFFER_SIZE);
-		stash = ft_join_free(stash, buffer);
-		new_line = ft_join_free(new_line, buffer);
+		if (s[i] == cc)
+			return ((char*)&s[i]);
+		i++;
 	}
-	free(buffer);
+	if (cc == '\0')
+		return ((char*)&s[i]);
+	return (NULL);
+}
+
+char	*read_stash(int fd, char *stash)
+{
+	char	*buffer;
+	ssize_t	b_read;
+	
+	buffer = malloc(sizeof(char) * (BUFFER_SIZE + 1));
+	if (!buffer)
+		return (NULL);
+	b_read = read(fd, buffer, BUFFER_SIZE);
+	if (b_read <= 0) 
+	{
+		free (buffer);
+		return (NULL);
+	}
+	stash = ft_strjoin(stash, buffer);
+	free (buffer);
+	return (stash);
+}
+
+char	*find_nl(char *stash)
+{
+	int	i;
+	char	*new_line;
+
+	i = 0;
+	while (stash[i] && !ft_strchr(stash, '\n'))
+	{
+		new_line[i] = stash[i];
+		i++;
+	}
+	new_line[i] = '\n';
+	i++;
+	new_line = '\0';
+	//stash = ft_memmove(stash, new_line, i);
 	return (new_line);
 }
-
 char	*get_next_line(int fd)
 {
 	static char	*stash;
-	char	*new_line;
-
-	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (NULL);
-	new_line = NULL;
-	if (stash[0] != '\0')
-		new_line = ft_join_free(new_line, stash);
-	if (ft_find_nl(stash) >= 0)
-		return (ft_handle_nl(stash, new_line));
-	new_line = ft_read_and_stash(fd, stash, new_line);
-	new_line = ft_handle_nl(stash, new_line);
-	return (new_line);
+	char	*line;
+	line = read_stash(fd, stash);
+	line = find_nl(stash);
+	return (line);
 }
 
-#include <stdio.h>
 
-void	test(const char *file)
-{
-	// arquivos base:
-	int		fd = open(file, O_RDONLY);
-	char	*gnl = get_next_line(fd);
+// #include <stdio.h>
 
-	while (gnl != NULL)
-	{
-		printf("%s", gnl);
-		free(gnl);
-		gnl = get_next_line(fd);
-	}
-	if (gnl)
-		free(gnl);
-	close (fd);
-}
+// void	test(const char *file)
+// {
+// 	// arquivos base:
+// 	int		fd = open(file, O_RDONLY);
+// 	char	*gnl = get_next_line(fd);
 
-int	main(int argc, char **argv)
-{
-	if (argc != 2)
-	{
-		printf("Teste com somente um numero: \"./a.out x\"\n");
-		printf("Teste 0 = lyrics.txt;\n");
-		printf("Teste 1 = multilines.txt;\n");
-		printf("Teste 2 = longline.txt;\n");
-		printf("Teste 3 = no_newline.txt;\n");
-		printf("Teste 4 = empty.txt;\n");
-		printf("Teste 5 = just_newlines.txt;\n");
-		printf("Teste 6 = single_newline.txt;\n");
-		printf("Teste 7 = invalid fd.\n");
-		return (1);
-	}
+// 	while (gnl != NULL)
+// 	{
+// 		printf("%s", gnl);
+// 		free(gnl);
+// 		gnl = get_next_line(fd);
+// 	}
+// 	if (gnl)
+// 		free(gnl);
+// 	close (fd);
+// }
+
+// int	main(int argc, char **argv)
+// {
+// 	if (argc != 2)
+// 	{
+// 		printf("Teste com somente um numero: \"./a.out x\"\n");
+// 		printf("Teste 0 = lyrics.txt;\n");
+// 		printf("Teste 1 = multilines.txt;\n");
+// 		printf("Teste 2 = longline.txt;\n");
+// 		printf("Teste 3 = no_newline.txt;\n");
+// 		printf("Teste 4 = empty.txt;\n");
+// 		printf("Teste 5 = just_newlines.txt;\n");
+// 		printf("Teste 6 = single_newline.txt;\n");
+// 		printf("Teste 7 = invalid fd.\n");
+// 		return (1);
+// 	}
 	
-	int	option = atoi(argv[1]);
+// 	int	option = atoi(argv[1]);
 	
-	if (option == 0)
-	{
-		printf("====    Rap God, Eminem    ====\n\n");
-		test("./main/tests/lyrics.txt");
-	}
+// 	if (option == 0)
+// 	{
+// 		printf("====    Rap God, Eminem    ====\n\n");
+// 		test("./main/tests/lyrics.txt");
+// 	}
 	
-	else if (option == 1)
-	{
-		printf("==== Arquivo com várias linhas normais ====\n\n");
-		test("./main/tests/multilines.txt");
-	}
+// 	else if (option == 1)
+// 	{
+// 		printf("==== Arquivo com várias linhas normais ====\n\n");
+// 		test("./main/tests/multilines.txt");
+// 	}
 
-	else if (option == 2)
-	{
-		printf("==== Arquivo com linha muito longa ====\n\n");
-		test("./main/tests/longline.txt");
-	}
+// 	else if (option == 2)
+// 	{
+// 		printf("==== Arquivo com linha muito longa ====\n\n");
+// 		test("./main/tests/longline.txt");
+// 	}
 
-	else if (option == 3)
-	{
-		printf("==== Arquivo sem quebra de linha no final ====\n\n");
-		test("./main/tests/no_newline.txt");
-	}
+// 	else if (option == 3)
+// 	{
+// 		printf("==== Arquivo sem quebra de linha no final ====\n\n");
+// 		test("./main/tests/no_newline.txt");
+// 	}
 
-	else if (option == 4)
-	{
-		printf("==== Arquivo vazio ====\n\n");
-		test("./main/tests/empty.txt");
-	}
+// 	else if (option == 4)
+// 	{
+// 		printf("==== Arquivo vazio ====\n\n");
+// 		test("./main/tests/empty.txt");
+// 	}
 
-	else if (option == 5)
-	{
-		printf("==== Arquivo com várias quebras de linha consecutivas ====\n\n");
-		test("./main/tests/just_newlines.txt");
-	}
+// 	else if (option == 5)
+// 	{
+// 		printf("==== Arquivo com várias quebras de linha consecutivas ====\n\n");
+// 		test("./main/tests/just_newlines.txt");
+// 	}
 
-	else if (option == 6)
-	{
-		printf("==== Arquivo com apenas um \\n ====\n\n");
-		test("./main/tests/single_newline.txt");
-	}
+// 	else if (option == 6)
+// 	{
+// 		printf("==== Arquivo com apenas um \\n ====\n\n");
+// 		test("./main/tests/single_newline.txt");
+// 	}
 
-	else if (option == 7)
-	{
-		printf("==== File descriptor inválido ====\n\n");
-		char *line = get_next_line(-1);
-		if (!line)
-			printf("fd tratado.\n");
-		else
-		{
-			printf("fd nao tratado, retornando: %s\n", line);
-			free(line);
-		}
-	}
-	else
-		printf("Escolha entre 0 e 7.\n");
-    return (0);
-}
+// 	else if (option == 7)
+// 	{
+// 		printf("==== File descriptor inválido ====\n\n");
+// 		char *line = get_next_line(-1);
+// 		if (!line)
+// 			printf("fd tratado.\n");
+// 		else
+// 		{
+// 			printf("fd nao tratado, retornando: %s\n", line);
+// 			free(line);
+// 		}
+// 	}
+// 	else
+// 		printf("Escolha entre 0 e 7.\n");
+//     return (0);
+// }
