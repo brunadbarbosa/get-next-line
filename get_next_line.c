@@ -6,7 +6,7 @@
 /*   By: brmaria- <brmaria-@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/13 13:00:29 by brmaria-          #+#    #+#             */
-/*   Updated: 2025/05/17 12:02:51 by brmaria-         ###   ########.fr       */
+/*   Updated: 2025/05/20 11:56:43 by brmaria-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ char	*ft_handle_nl(char *buffer, char *new_line)
 	if (nl_index >= 0)
 	{
 		i = -1;
-		 
+	}
 }
 
 char	*ft_join_free(char *new_line, char *stash)
@@ -143,6 +143,7 @@ char	*get_next_line(int fd)
 }
 
 #include <stdio.h>
+# include <fcntl.h>
 
 void	test(const char *file)
 {
